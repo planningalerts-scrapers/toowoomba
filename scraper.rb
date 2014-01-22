@@ -1,3 +1,4 @@
+require 'scraperwiki'
 require 'openssl'
 #disable encryption validation, we're fetching public data anyway
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
@@ -65,7 +66,7 @@ def get_da_urls (doc,comment_url)
       'date_scraped' => Date.today.to_s
     }
 
-    if ScraperWiki.select("* from swdata where `council_reference`='#{record['council_reference']}'").empty? 
+    if ScraperWiki.select("* from data where `council_reference`='#{record['council_reference']}'").empty? 
       ScraperWiki.save_sqlite(['council_reference'], record)
     else
       puts "Skipping already saved record " + record['council_reference']
