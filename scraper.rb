@@ -1,10 +1,18 @@
 require 'scraperwiki'
 require 'openssl'
+
+def with_warnings(flag)
+  old_verbose, $VERBOSE = $VERBOSE, flag
+  yield
+ensure
+  $VERBOSE = old_verbose
+end
+
 #disable encryption validation, we're fetching public data anyway
-silence_warnings do
+with_warnings(nil) {
   OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
   I_KNOW_THAT_OPENSSL_VERIFY_PEER_EQUALS_VERIFY_NONE_IS_WRONG = nil
-end
+}
 
 require 'mechanize'
 require 'uri'
