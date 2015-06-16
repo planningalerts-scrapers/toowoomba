@@ -27,7 +27,7 @@ page = agent.get(url)
 
 # Click the Agree button on the form
 form = page.forms.first
-form.submit(form.button_with(:name => 'ctl00$cphContent$ctl00$Button1'))
+form.submit(form.button_with(:value => 'I Agree'))
 
 # Get the page again
 doc = agent.get(url)
