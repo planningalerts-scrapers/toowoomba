@@ -56,8 +56,8 @@ def get_da_urls (doc,comment_url)
     # Columns in table
     # Show  Number  Submitted  Details
     tds = tr.search('td')
-    # Yes, this is "where no records"[sic]
-    break if tds[0].inner_text =~ /There where no records/
+
+    break if tds[0].inner_text =~ /no records/
 
     h = tds.map{|td| td.inner_html}
 
