@@ -76,11 +76,7 @@ def get_da_urls (doc,comment_url)
       'date_scraped' => Date.today.to_s
     }
 
-    if (ScraperWiki.select("* from data where `council_reference`='#{record['council_reference']}'").empty? rescue true)
-      ScraperWiki.save_sqlite(['council_reference'], record)
-    else
-      puts "Skipping already saved record " + record['council_reference']
-   end
+    ScraperWiki.save_sqlite(['council_reference'], record)
   end
 end
 def scrape_and_follow_next_link(doc,comment_url)
