@@ -21,7 +21,6 @@ agent = Mechanize.new
 
 # All applications submitted in the last month
 baseurl = 'https://pdonline.toowoombarc.qld.gov.au/Masterview/Modules/ApplicationMaster/'
-comment_url = 'mailto:info@toowoombaRC.qld.gov.au'
 url = "https://pdonline.toowoombarc.qld.gov.au/Masterview/Modules/ApplicationMaster/default.aspx?page=found&1=thisweek&4a=\'488\',\'487\',\'486\',\'495\',\'521\',\'540\',\'496\',\'562\'&6=F"
 page = agent.get(url)
 
@@ -43,7 +42,7 @@ def get_pages (page, form, event_target)
 end
 
 def clean_whitespace(a)
-  if a != nil 
+  if a != nil
     a.gsub("\r", ' ').gsub("\n", ' ').squeeze(" ").strip
   else
     a
@@ -51,7 +50,7 @@ def clean_whitespace(a)
 end
 
 # Construct urls for each link in the table
-def get_da_urls (doc,comment_url)
+def get_da_urls (doc)
   doc.search('table tbody tr').each do |tr|
     # Columns in table
     # Show  Number  Submitted  Details
@@ -67,7 +66,6 @@ def get_da_urls (doc,comment_url)
     descParts = h[3].split('<br>')
     record = {
       'info_url' => info_url,
-      'comment_url' => comment_url,
       'council_reference' => clean_whitespace(h[1]),
       'date_received' => Date.strptime(clean_whitespace(h[2]), '%d/%m/%Y').to_s,
       # TODO: Some DAs have multiple addresses, we're just getting the first :(
@@ -79,13 +77,13 @@ def get_da_urls (doc,comment_url)
     ScraperWiki.save_sqlite(['council_reference'], record)
   end
 end
-def scrape_and_follow_next_link(doc,comment_url)
+def scrape_and_follow_next_link(doc)
   puts "next page"
-  get_da_urls(doc, comment_url)
+  get_da_urls(doc)
   nextButton = doc.at('.rgPageNext')
   unless nextButton.nil? || nextButton['onclick'] =~ /return false/
     form = doc.forms.first
-    
+
     # The joy of dealing with ASP.NET
     form['__EVENTTARGET'] = nextButton['name']
     form['__EVENTARGUMENT'] = ''
@@ -96,7 +94,7 @@ def scrape_and_follow_next_link(doc,comment_url)
     form['ctl00_RadScriptManager1_HiddenField']=
       '%3B%3BSystem.Web.Extensions%2C%20Version%3D3.5.0.0%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3D31bf3856ad364e35%3Aen-US%3A0d787d5c-3903-4814-ad72-296cea810318%3Aea597d4b%3Ab25378d2%3BTelerik.Web.UI%2C%20Version%3D2009.1.527.35%2C%20Culture%3Dneutral%2C%20PublicKeyToken%3D121fae78165ba3d4%3Aen-US%3A1e3fef00-f492-4ed8-96ce-6371bc241e1c%3A16e4e7cd%3Af7645509%3A24ee1bba%3Ae330518b%3A1e771326%3Ac8618e41%3A4cacbc31%3A8e6f0d33%3Aed16cbdc%3A58366029%3Aaa288e2d'
     doc = form.submit(form.button_with(:name => nextButton['name']))
-    scrape_and_follow_next_link(doc,comment_url)
+    scrape_and_follow_next_link(doc)
   end
 end
 # Visit each DA page so we can get the details
@@ -106,12 +104,9 @@ end
 # address: div with id 'lblProp', then text of a element
 # description: second half of reference content, plus text before <br> in div with  id 'lblDetails', then text of a element
 # info_url is the url of the da page
-# comment_url is email address
 # date received is the text after <br> in div with id 'lblDetails'
 # on notice from may not be set
 # on notice to is the corresponding cell to 'Decision Making Period' in the table in div with id 'lblTasks'
 
 
-scrape_and_follow_next_link(doc,comment_url)
-
-
+scrape_and_follow_next_link(doc)
